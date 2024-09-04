@@ -1,0 +1,103 @@
+/***************************************************************************//**
+ * @file main.c
+ * @brief main() function.
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2021 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+
+#ifdef SL_COMPONENT_CATALOG_PRESENT
+#include "sl_component_catalog.h"
+#endif
+#include "sl_system_init.h"
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+#include "sl_power_manager.h"
+#endif
+#if defined(SL_CATALOG_KERNEL_PRESENT)
+#include "sl_system_kernel.h"
+#else
+#include "sl_system_process_action.h"
+#endif // SL_CATALOG_KERNEL_PRESENT
+
+#ifdef EMBER_TEST
+#define main nodeMain
+#endif
+
+#include "af.h"
+#include "../../project/zigbee_platform/zp_zc_network/gs_zp_zc_network.h"
+#include "../../project/component/cmp_coord_temp/gs_cmp_coord_temp.h"
+#include "zigbee_app_framework_event.h"
+#include "sl_zigbee_debug_print.h"
+#include "app/framework/util/af-main.h"
+#include "../../project/application/app_temp_coord/gs_app_temp_coord.h"
+#include "../../../project/application/app_temp_coord/gs_app_temp_coord.h"
+#include "../../../project/application/app_temp_coord/gs_app_temp_coord_cfg.h"
+
+void app_init(void)
+{
+	gs_zp_zc_network_class()->init(true);
+
+	//gs_temp_receiver_init();
+
+
+
+	uint8_t status = app_init_coord(&stThermoInfo1);
+
+	sl_zigbee_app_debug_println(" Application Start: 0x%1X", status);
+
+	//gs_temp_receiver_ias_zone_init();
+
+
+
+
+
+
+
+}
+
+void app_process_action(void)
+{
+
+}
+
+int main(void)
+{
+  // Initialize Silicon Labs device, system, service(s) and protocol stack(s).
+  // Note that if the kernel is present, processing task(s) will be created by
+  // this call.
+  sl_system_init();
+
+  // Initialize the application. For example, create periodic timer(s) or
+  // task(s) if the kernel is present.
+  app_init();
+
+#if defined(SL_CATALOG_KERNEL_PRESENT)
+  // Start the kernel. Task(s) created in app_init() will start running.
+  sl_system_kernel_start();
+#else // SL_CATALOG_KERNEL_PRESENT
+  while (1) {
+    // Do not remove this call: Silicon Labs components process action routine
+    // must be called from the super loop.
+    sl_system_process_action();
+
+    // Application process.
+    app_process_action();
+
+    // Let the CPU go to sleep if the system allow it.
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+    sl_power_manager_sleep();
+#endif // SL_CATALOG_POWER_MANAGER_PRESENT
+  }
+#endif // SL_CATALOG_KERNEL_PRESENT
+
+  return 0;
+}
